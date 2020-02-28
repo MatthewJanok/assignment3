@@ -8,11 +8,12 @@ kb = 1.381e-23;
 T = 300;
 Pscat = 1-exp(-1e-14/0.2e-12);
 Vx = 0.5;
-Vy = 0.5;
+Vy = 0.2;
 Efieldx = Vx/2E-7; %E=v/m
 Forcex = Efieldx*q;
-Efieldy = Vy/2E-7; %E=v/m
+Efieldy = Vy/1E-7; %E=v/m
 Forcey = Efieldy*q;
+Vavg = 0;
 
 %Acceleration Due to Efield
 accelx = Forcex/mo;
@@ -48,7 +49,7 @@ newX = initialX + velocityX*1e-14;
 newY = initialY + velocityY*1e-14;
 
 
-for time = 0:1e-14:0.01
+for time = 0:1e-14:1e-12
    
     
     %Check for Scatter
@@ -74,15 +75,16 @@ for time = 0:1e-14:0.01
 %         figure(1)
 %         velocity = histogram(initialRV,25);
 
-%         %Mean Free Path/Time Between Collisions
-% 
-%         scat = scat+ sum(Escat);
-%         tauMN = (time*10)/scat;
-%         Vavg = mean((velocityX.^2) + (velocityY.^2));
-%        
-%         MFP = tauMN*Vavg;
+        %Mean Free Path/Time Between Collisions
+        Vavgold = Vavg;
+        scat = scat+ sum(Escat);
+        tauMN = (time*10)/scat;
+        Vavg = mean((velocityX.^2) + (velocityY.^2));
+       
+        MFP = tauMN*Vavg;
         
- 
+
+%  
 %         figure(2)
 %         subplot(2,1,1)
 %         title('Mean Free Time')
@@ -94,35 +96,63 @@ for time = 0:1e-14:0.01
 %         figure(2)
 %         subplot(2,1,2)
 %         xlabel('Total Time in Sim (s)')
-%         ylabel('Mean Free PAth (m)')
+%         ylabel('Mean Free Path (m)')
 %         title('Mean Free Path')
 %         plot(time, MFP, 'g.')
 %         hold on
         
      else
-        velocityX = velocityX + accelx*1E-14;
-        velocityY = velocityY + accely*1E-14;
+        Vavgold = Vavg;
+        Vavg = mean((velocityX.^2) + (velocityY.^2));
+      
+        velocityX = velocityX + accelx*1e-14;
+        velocityY = velocityY + accely*1e-14;
          %Find new positions
          newX = initialX + velocityX*1e-14 + (accelx*(1E-14^2));
          newY = initialY + velocityY*1e-14 + (accely*(1E-14^2));
+        
+         
      end
      
+%      Vavgold = Vavg;
      
+    %Track Average Velocity
+    figure(1)
+    title('Average Velocity')
+    xlabel('Total Time in Sim (s)')
+    ylabel('Average Particle Velicity (m/s)')
+    plot(time, Vavg, 'b.')
+%     plot([time-1e-14 time], [Vavgold Vavg], 'b')
+    hold on
+     
+    
+    %Find Drift Current Density
+    PDCX = velocityX >= 0;
+    driftElecX = sum(velocityX(PDCX))*q;
+    Jx = driftElecX/(1e-7*2e-7); 
+    
+    PDCY = velocityY >= 0;
+    driftElecY = sum(velocityY(PDCY))*q;
+    Jy = driftElecY/(2e-7*1e-7); 
+    
+    figure(2)
+    plot(time, Jx, 'r.', time, Jy, 'b.') 
+    hold on
+    
     %Find temperature
     Vavg = mean((velocityX.^2) + (velocityY.^2));
     T = (mn*Vavg)/(kb);
-
 
 
     %Check X boundary conditions
     [NH,IH] = max(newX);
     [NL,IL] = min(newX);
     
-    upperX = newX > 200e-9;
+    upperX = newX >= 200e-9;
     newX(upperX)= newX(upperX)-200e-9;
     initialX(upperX) = newX(upperX);
     
-    lowX = newX < 0;
+    lowX = newX <= 0;
     newX(lowX) = newX(lowX)+200e-9;
     initialX(lowX) = newX(lowX);
         
@@ -132,10 +162,10 @@ for time = 0:1e-14:0.01
     [NumH,IndexH] = max(newY);
     [NumL,IndexL] = min(newY);
     
-    upperY = newY > 100e-9;
+    upperY = newY >= 100e-9;
     velocityY(upperY)= -velocityY(upperY);
     
-    lowY = newY < 0;
+    lowY = newY <= 0;
     velocityY(lowY) = -velocityY(lowY);
     
     
@@ -144,9 +174,6 @@ for time = 0:1e-14:0.01
     xp = [initialX newX];
     yp = [initialY newY];
     c =  lines(10);
-    
-
-    
 
     figure(3)
     title('Confined Atoms');
@@ -157,10 +184,26 @@ for time = 0:1e-14:0.01
     axis ([0 200e-9 0 100e-9])
     
     
-%     figure(4)
-%     title('Average Temperature (C)');
-%     plot(time, T, 'r.')
-%     hold on  
+    figure(4)
+    title('Average Temperature (C)');
+    plot(time, T, 'r.')
+    hold on  
+    
+        %Density Plots
+    
+    x = linspace(0, 2e-7,100);
+    y = linspace(0, 1e-7,100);
+    [X,Y] = meshgrid(x,y);
+    
+%     for i = 0:x
+%         for j = 0:y
+%             if particle
+    
+    figure(5)
+    title('Electron Density')
+    pos = meshgrid(newX, newY);
+%     map = meshgrid(pos, substrate);
+    surf(X,Y)
 
  
     initialX = newX;
@@ -171,6 +214,13 @@ for time = 0:1e-14:0.01
     time
 
 end
+
+
+
+
+
+
+
 
 hold off
 
