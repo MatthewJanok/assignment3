@@ -14,7 +14,7 @@ Forcex = Efieldx*q;
 Efieldy = Vy/1E-7; %E=v/m
 Forcey = Efieldy*q;
 Vavg = 0;
-tempAtoms = zeros(10,1); 
+
 
 %Acceleration Due to Efield
 accelx = Forcex/mo;
@@ -131,10 +131,17 @@ for time = 0:1e-14:3e-13
     PDCX = velocityX >= 0;
     driftElecX = sum(velocityX(PDCX))*q;
     Jx = driftElecX/(1e-7*2e-7); 
+%     figure(1)
+%     title('Current Density in X')
+%     plot(time, Jx)
     
     PDCY = velocityY >= 0;
     driftElecY = sum(velocityY(PDCY))*q;
     Jy = driftElecY/(2e-7*1e-7); 
+%     figure(2)
+%     title('Current Density in Y')
+%     plot(time, Jy)
+    
     
     figure(2)
     plot(time, Jx, 'r.', time, Jy, 'b.') 
