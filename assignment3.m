@@ -14,6 +14,7 @@ Forcex = Efieldx*q;
 Efieldy = Vy/1E-7; %E=v/m
 Forcey = Efieldy*q;
 Vavg = 0;
+tempAtoms = zeros(10,1); 
 
 %Acceleration Due to Efield
 accelx = Forcex/mo;
@@ -49,7 +50,7 @@ newX = initialX + velocityX*1e-14;
 newY = initialY + velocityY*1e-14;
 
 
-for time = 0:1e-14:1e-12
+for time = 0:1e-14:3e-13
    
     
     %Check for Scatter
@@ -143,7 +144,7 @@ for time = 0:1e-14:1e-12
     Vavg = mean((velocityX.^2) + (velocityY.^2));
     T = (mn*Vavg)/(kb);
 
-
+    
     %Check X boundary conditions
     [NH,IH] = max(newX);
     [NL,IL] = min(newX);
@@ -189,23 +190,46 @@ for time = 0:1e-14:1e-12
     plot(time, T, 'r.')
     hold on  
     
-        %Density Plots
     
-    x = linspace(0, 2e-7,100);
-    y = linspace(0, 1e-7,100);
-    [X,Y] = meshgrid(x,y);
     
-%     for i = 0:x
-%         for j = 0:y
-%             if particle
     
-    figure(5)
-    title('Electron Density')
-    pos = meshgrid(newX, newY);
-%     map = meshgrid(pos, substrate);
-    surf(X,Y)
+    
+    
+%     %Density Plots
+% 
+%     %Find Temperature per Atom
+%     Vatoms = velocityX.^2 + velocityY.^2;
+%     tempAtoms = (mn.*Vatoms)./kb;
+%     
+%     %Make Plot
+%     x = linspace(0,2e-7,10);
+%     y = linspace(0,1e-7,10);
+%     [Xt,Yt] = meshgrid(newX,newY);
+%     Z = tempAtoms;
+%     surf(Xt,Yt,Z)
+%        
+%         
+%         
+% %     pos = meshgrid(newX, newY);
+% %     map = meshgrid(pos, substrate);        
+% %     
+% %     x = linspace(0, 2e-7,100);
+% %     y = linspace(0, 1e-7,100);
+% %     [X,Y] = meshgrid(x,y);
+% %     
+% %     for i = 0:x
+% %         for j = 0:y
+% %             if particle
+%     
+%     figure(5)
+%     title('Electron Temperature')
+%     surf(tempPlot)
 
  
+
+
+
+
     initialX = newX;
     initialY = newY;
     
@@ -215,6 +239,59 @@ for time = 0:1e-14:1e-12
 
 end
 
+del = 0.05e-7;
+nx = 40;
+ny = 20;
+ED = zeros(ny,nx);
+Temp = zeros(ny,nx);
+
+for i = 1:nx
+    for j = 1:ny
+        LowerBoxLeftX1 = newX < (i*del);
+        LowerBoxLeftX2 = newX > (i*del - del); 
+        LowerBoxLeftX = LowerBoxLeftX1>0 & LowerBoxLeftX2>0;      
+        
+        
+        LowerBoxLeftY1 = newY < (j*del);
+        LowerBoxLeftY2 = newY > (j*del - del);
+        LowerBoxLeftY = LowerBoxLeftY1>0 & LowerBoxLeftY2>0;
+        
+        particles = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+        
+        Xvelocity = velocityX(particles);
+        Yvelocity = velocityY(particles);
+
+        
+        TotalElectrons = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+        Vavg = mean((Xvelocity.^2) + (Yvelocity.^2));
+        
+        
+        Temp(j,i) = (mn*Vavg)/(kb);
+        ED(j,i) = sum(TotalElectrons);
+       
+    end
+end
+
+x = linspace(0,2e-7,40);
+y = linspace(0,1e-7,20);
+[X,Y] = meshgrid(x,y);
+[Xp,Yp] = meshgrid(newX,newY);
+
+figure(5)
+title('Electron Density')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+surf(X,Y,ED)
+
+
+notTemp = isnan(Temp);
+Temp(notTemp) = 0;
+
+figure(7)
+title('Temperature Map')
+xlabel('X Distance In Plane (1square = 0.05e-7m')
+ylabel('Y Distance In Plane (1square = 0.05e-7m')
+surf(X,Y,Temp)
 
 
 
