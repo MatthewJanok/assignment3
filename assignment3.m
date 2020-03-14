@@ -1,7 +1,540 @@
+% clc
+% clear
+% 
+% NumElec = 500;
+% q = 1.602E-19;
+% mo = 9.11e-31;
+% mn = 0.26*mo;
+% kb = 1.381e-23;
+% T = 300;
+% Pscat = 1-exp(-1e-14/0.2e-12);
+% Vx = 0.8;
+% Vy = 0;
+% Efieldx = Vx/2E-7; %E=v/m
+% Forcex = Efieldx*q;
+% Efieldy = Vy/1E-7; %E=v/m
+% Forcey = Efieldy*q;
+% Vavg = 0;
+% 
+% 
+% %Acceleration Due to Efield
+% accelx = Forcex/mo;
+% accely = Forcey/mo;
+% 
+% %Initialise the particles
+% initialX = 200e-9*rand(NumElec,1);
+% initialY = 100e-9*rand(NumElec,1);
+% axis ([0 200e-9 0 100e-9])
+% 
+% %Initialise angles
+% angleRad = 2*pi*rand(NumElec,1);
+% 
+% %Set velocity
+% vth = sqrt((kb*T)/mn);
+% 
+% %Maxwell Boltzman Inital Velocity
+% MD1 = randn(NumElec,1).*(vth/sqrt(2));
+% MD2 = randn(NumElec,1).*(vth/sqrt(2));
+% MaxwellBoltzman = sqrt((MD1).^2+(MD2).^2);
+% initialRV = MaxwellBoltzman;
+% 
+% % figure(1)
+% % velocity = histogram(initialRV,20);
+% 
+% scat = 0;
+% 
+% 
+% velocityX = initialRV.*cos(angleRad);
+% velocityY = initialRV.*sin(angleRad);
+% 
+% newX = initialX + velocityX*1e-14;
+% newY = initialY + velocityY*1e-14;
+% 
+% 
+% 
+% for time = 0:1e-14:6e-13
+%    
+%     
+%     %Check for Scatter
+%     Escat = rand(NumElec,1) < Pscat;
+%     NoScat = ~Escat;
+% %      if newX(Escat) > 0
+%         %Rethermalize
+%         MD1 = randn(NumElec,1).*(vth/sqrt(2));
+%         MD2 = randn(NumElec,1).*(vth/sqrt(2));
+%         MaxwellBoltzman = sqrt((MD1).^2+(MD2).^2);
+%         initialRV = MaxwellBoltzman;
+% 
+%         %Find New Velocities
+% %         voldX = velocityx;
+% %         vnewX = (accel)*1E-14 + voldX;
+%         angleRad = 2*pi*rand(NumElec,1);
+%         velocityX(Escat) = initialRV(Escat).*cos(angleRad(Escat)) + (accelx*1E-14);
+%         velocityY(Escat) = initialRV(Escat).*sin(angleRad(Escat)) + (accely*1E-14);
+%         
+%          %Find new positions
+%          newX(Escat) = initialX(Escat) + velocityX(Escat)*1e-14;
+%          newY(Escat) = initialY(Escat) + velocityY(Escat)*1e-14;
+%         
+% %         figure(1)
+% %         velocity = histogram(initialRV,25);
+% 
+%         %Mean Free Path/Time Between Collisions
+% %         Vavgold = Vavg;
+% %         scat = scat+ sum(Escat);
+% %         tauMN = (time*NumElec)/scat;
+% %         Vavg = mean(sqrt((velocityX.^2) + (velocityY.^2)));
+% %        
+% %         MFP = tauMN*Vavg;
+%         
+% 
+% %  
+% %         figure(2)
+% %         subplot(2,1,1)
+% %         title('Mean Free Time')
+% %         xlabel('Total Time in Sim (s)')
+% %         ylabel('Mean Free Time (s)')
+% %         plot(time, tauMN, 'b.')
+% %         hold on
+% %         
+% %         figure(2)
+% %         subplot(2,1,2)
+% %         xlabel('Total Time in Sim (s)')
+% %         ylabel('Mean Free Path (m)')
+% %         title('Mean Free Path')
+% %         plot(time, MFP, 'g.')
+% %         hold on
+%         
+% %      else
+%        
+%         velocityX(NoScat) = velocityX(NoScat) + accelx*1e-14;
+%         velocityY(NoScat) = velocityY(NoScat) + accely*1e-14;
+%          %Find new positions
+%          newX(NoScat) = initialX(NoScat) + velocityX(NoScat)*1e-14 ;%+ (accelx*(1E-14^2))
+%          newY(NoScat) = initialY(NoScat) + velocityY(NoScat)*1e-14 ;%+ (accely*(1E-14^2))
+%         
+%         Vavgold = Vavg;
+%         Vavg = mean(sqrt((velocityX.^2) + (velocityY.^2)));
+%       
+%          
+% %      end
+%      
+% %      Vavgold = Vavg;
+%      
+%     %Track Average Velocity
+%     figure(1)
+%     title('Average Velocity')
+%     xlabel('Total Time in Sim (s)')
+%     ylabel('Average Particle Velicity (m/s)')
+%     plot(time, Vavg, 'b.')
+% %     plot([time-1e-14 time], [Vavgold Vavg], 'b')
+%     hold on
+%      
+%     
+%     %Find Drift Current Density
+%     PDCX = velocityX > 0; %find positive velocities
+%     NDCX = velocityX <= 0;%find negative velocities
+%     driftCurrentX = (mean(velocityX(PDCX))- mean(velocityX(NDCX)))*q*NumElec*(1e-7*2e-7);%Find average drift velocity and convert to current
+%     Jx = driftCurrentX/(1e-7*2e-7); %J=I/A
+%     
+%     PDCY = velocityY > 0;
+%     NDCY = velocityY < 0;
+%     driftElecY = (mean(velocityY(PDCY))- mean(velocityY(NDCY)))*q*NumElec*(1e-7*2e-7);
+%     Jy = driftElecY/(2e-7*1e-7); 
+%     
+%     
+%     figure(2)
+%     plot(time, Jx, 'r.', time, Jy, 'b.')
+%     title('Current Density Jx Jy')
+%     legend('Jx', 'Jy')
+%     xlabel('Time')
+%     ylabel('Current Density (A/m^2)')
+%     hold on
+%     
+%     %Find Average temperature
+%     Vavg = mean(((velocityX.^2) + (velocityY.^2)));
+%     T = (mn*Vavg)/(kb);
+% 
+%     
+%     %Check X boundary conditions
+%     [NH,IH] = max(newX);
+%     [NL,IL] = min(newX);
+%     
+%     upperX = newX >= 200e-9;
+%     newX(upperX)= newX(upperX)-200e-9;
+%     initialX(upperX) = newX(upperX);
+%     
+%     lowX = newX <= 0;
+%     newX(lowX) = newX(lowX)+200e-9;
+%     initialX(lowX) = newX(lowX);
+%         
+%     
+%     
+%     %Check Y boundary conditions
+%     [NumH,IndexH] = max(newY);
+%     [NumL,IndexL] = min(newY);
+%     
+%     upperY = newY >= 100e-9;
+%     velocityY(upperY)= -velocityY(upperY);
+%     
+%     lowY = newY <= 0;
+%     velocityY(lowY) = -velocityY(lowY);
+%     
+%     
+%    
+%     
+%     xp = [initialX newX];
+%     yp = [initialY newY];
+%     c =  lines(NumElec);
+% 
+%     figure(3)
+%     title('Confined Atoms');
+%     P = plot(xp.', yp.');
+%     set(P, {'color'}, num2cell(c,2));    
+%     hold on
+% 
+%     axis ([0 200e-9 0 100e-9])
+%     
+%     
+%     figure(4)
+%     title('Average Temperature (C)');
+%     plot(time, T, 'r.')
+%     xlabel('Time')
+%     ylabel('Temperature')
+%     hold on  
+%   
+% 
+% 
+% 
+% 
+%     initialX = newX;
+%     initialY = newY;
+%     
+%     
+%     pause(0.001)
+%     time
+% 
+% end
+% 
+% del = 0.05e-7;
+% nx = 40;
+% ny = 20;
+% ED = zeros(ny,nx);
+% Temp = zeros(ny,nx);
+% 
+% for i = 1:nx
+%     for j = 1:ny
+%         LowerBoxLeftX1 = newX < (i*del);
+%         LowerBoxLeftX2 = newX > (i*del - del); 
+%         LowerBoxLeftX = LowerBoxLeftX1>0 & LowerBoxLeftX2>0;      
+%         
+%         
+%         LowerBoxLeftY1 = newY < (j*del);
+%         LowerBoxLeftY2 = newY > (j*del - del);
+%         LowerBoxLeftY = LowerBoxLeftY1>0 & LowerBoxLeftY2>0;
+%         
+%         particles = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+%         
+%         Xvelocity = velocityX(particles);
+%         Yvelocity = velocityY(particles);
+% 
+%         
+%         TotalElectrons = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+%         Vavg = mean((Xvelocity.^2) + (Yvelocity.^2));
+%         
+%         
+%         Temp(j,i) = (mn*Vavg)/(kb);
+%         ED(j,i) = sum(TotalElectrons);
+%        
+%     end
+% end
+% 
+% x = linspace(0,2e-7,40);
+% y = linspace(0,1e-7,20);
+% [X,Y] = meshgrid(x,y);
+% [Xp,Yp] = meshgrid(newX,newY);
+% 
+% figure(5)
+% surf(X,Y,ED);
+% title('Electron Density')
+% xlabel('X Position')
+% ylabel('Y Position')
+% 
+% notTemp = isnan(Temp);
+% Temp(notTemp) = 0;
+% 
+% figure(7)
+% surf(X,Y,Temp);
+% title('Temperature Map')
+% xlabel('X Position')
+% ylabel('Y Position')
+% 
+% hold off
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+% % Part 2
+clear
+clc
+
+NumElec = 200
+nx = 20;
+ny = 40;
+Vx = 2;
+Vy = 0;
+delx = 0.05e-7;
+dely = 0.05e-7;
+Acond = 1;
+Bcond = 10E-2;
+
+G = sparse(nx*ny,nx*ny);
+Vv = zeros(nx*ny,1);
+V = zeros(nx,ny);
+B = zeros((nx*ny),1);
+
+x = linspace(0,2e-7,40);
+y = linspace(0,1e-7,20);
+[X,Y] = meshgrid(x,y);
+% [Xp,Yp] = meshgrid(newX,newY);
+        
+
+
+%Part 2 from assignment 2
+
+cMap = zeros(nx, ny);
+
+for j = 1:ny
+    for i = 1:nx
+        cMap(i,j) = Acond;
+        if ((j<((2/3)*ny))&&((j>((1/3)*ny))&&(i<((1/3)*nx))))|| ((j<((2/3)*ny))&&((j>((1/3)*ny))&&(i>((2/3)*nx))))
+            cMap(i,j) = Bcond;
+        end
+    end
+end
+figure(1)
+surf(X,Y,cMap)    
+title('Conduction Map')
+xlabel('ny Value')
+ylabel('nx Value')
+
+%Initialize Left Boundary Conditions
+for i = 1:nx*ny
+    B(i,1) = 0;
+    B(i,ny) = 0;
+end
+        
+%Set diagonal
+for j = 1:ny
+    for i = 1:nx
+        n = i+(j-1)*nx;
+        %Set the Boundary Nodes
+        if j == 1
+            G(n,:) = 0;
+            G(n,n) = 1; 
+%             B(n,1) = 0;
+            
+        elseif j == ny
+            G(n,:) = 0;
+            G(n,n) = 1;
+            B(n,1) = Vx;
+            
+        elseif i == 1
+            %Mapping
+            nxm = (i)+(j-2)*nx;
+            nxp = (i)+(j)*nx;
+            nyp = (i+1)+(j-1)*nx;
+            G(n,:) = 0;
+            G(n,n) = 1;
+            B(n,1) = 0;
+            
+            rxm = ((cMap(i,j) + cMap(i,j-1))/2);
+            rxp = ((cMap(i,j) + cMap(i,j+1))/2);            
+            ryp = ((cMap(i,j) + cMap(i+1,j))/2);
+
+            G(n,n) = -(rxp+rxm+ryp);
+            G(n,nxm) = rxm;
+            G(n,nyp) = ryp;
+            G(n,nxp) = rxp;
+            
+        elseif i == nx
+            %Mapping
+            nym = (i-1)+(j-1)*nx;
+            nxp = (i)+(j)*nx;
+            nxm = (i)+(j-2)*nx;
+            G(n,:) = 0;
+            G(n,n) = 1;
+            B(n,1) = 0;
+            
+            rxm = ((cMap(i,j) + cMap(i,j-1))/2);
+            rxp = ((cMap(i,j) + cMap(i,j+1))/2);            
+            rym = ((cMap(i,j) + cMap(i-1,j))/2);
+
+            G(n,n) = -(rxm+rym+rxp);
+            G(n,nym) = rym;
+            G(n,nxm) = rxm;
+            G(n,nxp) = rxp;            
+
+        else
+            %Mapping
+            nym = (i-1)+(j-1)*nx;
+            nyp = (i+1)+(j-1)*nx;
+            nxm = (i)+(j-2)*nx;
+            nxp = (i)+(j)*nx;
+
+            rym = ((cMap(i,j) + cMap(i-1,j))/2);
+            ryp = ((cMap(i,j) + cMap(i+1,j))/2);            
+            rxm = ((cMap(i,j) + cMap(i,j-1))/2);        
+            rxp = ((cMap(i,j) + cMap(i,j+1))/2);       
+      
+   
+            G(n,n) = -(rxm+rxp+rym+ryp);
+            G(n,nym) = rym;
+            G(n,nyp) = ryp;
+            G(n,nxm) = rxm;
+            G(n,nxp) = rxp; 
+            B(n,1) = 0;
+            
+
+
+        end
+   
+    end
+end
+
+Vv = G\B;
+
+for j = 1:ny
+    for i = 1:nx
+        n = i+(j-1)*nx;
+        V(i,j) = Vv(n,1);
+    end
+end
+
+figure(2)
+surf(X,Y,V)
+title('V Plot')
+xlabel('ny Value')
+ylabel('nx Value')
+
+
+
+%Gradient of V
+for j = 1:ny
+    for i = 1:nx
+        if j == 1
+            Ex(i,j) = (V(i,j+1)-V(i,j));
+        elseif j == ny
+            Ex(i,j) = (V(i,j)-V(i,j-1));
+        else
+            Ex(i,j) = (V(i,j+1)-V(i,j-1))*0.5;
+        end
+        if i == 1
+            Ey(i,j) = (V(i+1,j)-V(i,j));
+        elseif i == nx
+            Ey(i,j) = (V(i,j)-V(i-1,j));
+        else
+            Ey(i,j) = (V(i+1,j)-V(i-1,j))*0.5;
+        end
+    end
+end
+
+Ex = -Ex;
+Ey = -Ey;
+% figure(6)
+% surf(X,Y,Ex)
+% title('Ex Field')
+% xlabel('ny Value')
+% ylabel('nx Value')
+
+% figure(7)
+% surf(X,Y,Ey)
+% title('Ey Field')
+% xlabel('ny Value')
+% ylabel('nx Value')
+
+E = sqrt(Ex.^2+Ey.^2);
+figure(3)
+surf(X,Y,E)
+title('Total E Field')
+xlabel('ny Value')
+ylabel('nx Value')
+
+eflowx = cMap.*Ex;
+eflowy = cMap.*Ey;
+
+% figure(9)
+% surf(X,Y,eflowx)
+% title('Eflow X')
+% xlabel('ny Value')
+% ylabel('nx Value')
+% 
+% figure(10)
+% surf(X,Y,eflowy)
+% title('Eflow Y')
+% xlabel('ny Value')
+% ylabel('nx Value')
+
+
+eflow = sqrt(eflowx.^2 + eflowy.^2);
+
+% figure(11)
+% surf(X,Y,eflow)
+% title('Eflow Total')
+% xlabel('ny Value')
+% ylabel('nx Value')
+
+C0 = sum(eflowx(1,:));
+Cnx = sum(eflowx(nx,:));
+Curr = (C0+Cnx)*0.5;
+
+figure(4)
+quiver(X,Y,Ex,Ey)
+axis ([0 200e-9 0 100e-9])
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%Part 2 C)
+
 clc
 clear
 
-NumElec = 500;
+NumElec = 200;
 q = 1.602E-19;
 mo = 9.11e-31;
 mn = 0.26*mo;
@@ -21,10 +554,17 @@ Vavg = 0;
 accelx = Forcex/mo;
 accely = Forcey/mo;
 
+%Initialize Bottleneck
+BLX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
+BLY = [0 0.4e-7; 0.4e-7 0.4e-7; 0.4e-7 0];
+BHX = [0.8e-7 0.8e-7; 0.8e-7 1.2e-7; 1.2e-7 1.2e-7]; 
+BHY = [1e-7 0.6e-7; 0.6e-7 0.6e-7; 0.6e-7 1e-7];
+
 %Initialise the particles
 initialX = 200e-9*rand(NumElec,1);
-initialY = 100e-9*rand(NumElec,1);
+initialY = 0.2e-7.*rand(NumElec,1) + 0.4e-7;
 axis ([0 200e-9 0 100e-9])
+
 
 %Initialise angles
 angleRad = 2*pi*rand(NumElec,1);
@@ -52,10 +592,10 @@ newY = initialY + velocityY*1e-14;
 
 
 
-for time = 0:1e-14:6e-13
+for time = 0:1e-14:5e-13
    
     
-    %Check for Scatter
+    %For Scattered Particles
     Escat = rand(NumElec,1) < Pscat;
     NoScat = ~Escat;
 %      if newX(Escat) > 0
@@ -76,40 +616,14 @@ for time = 0:1e-14:6e-13
          newX(Escat) = initialX(Escat) + velocityX(Escat)*1e-14;
          newY(Escat) = initialY(Escat) + velocityY(Escat)*1e-14;
         
-%         figure(1)
-%         velocity = histogram(initialRV,25);
 
-        %Mean Free Path/Time Between Collisions
-%         Vavgold = Vavg;
-%         scat = scat+ sum(Escat);
-%         tauMN = (time*NumElec)/scat;
-%         Vavg = mean(sqrt((velocityX.^2) + (velocityY.^2)));
-%        
-%         MFP = tauMN*Vavg;
-        
-
-%  
-%         figure(2)
-%         subplot(2,1,1)
-%         title('Mean Free Time')
-%         xlabel('Total Time in Sim (s)')
-%         ylabel('Mean Free Time (s)')
-%         plot(time, tauMN, 'b.')
-%         hold on
-%         
-%         figure(2)
-%         subplot(2,1,2)
-%         xlabel('Total Time in Sim (s)')
-%         ylabel('Mean Free Path (m)')
-%         title('Mean Free Path')
-%         plot(time, MFP, 'g.')
-%         hold on
-        
-%      else
-       
+         
+         
+  %For Non-Scattering Particles
         velocityX(NoScat) = velocityX(NoScat) + accelx*1e-14;
         velocityY(NoScat) = velocityY(NoScat) + accely*1e-14;
-         %Find new positions
+         
+        %Find new positions
          newX(NoScat) = initialX(NoScat) + velocityX(NoScat)*1e-14 ;%+ (accelx*(1E-14^2))
          newY(NoScat) = initialY(NoScat) + velocityY(NoScat)*1e-14 ;%+ (accely*(1E-14^2))
         
@@ -122,7 +636,7 @@ for time = 0:1e-14:6e-13
 %      Vavgold = Vavg;
      
     %Track Average Velocity
-    figure(1)
+    figure(5)
     title('Average Velocity')
     xlabel('Total Time in Sim (s)')
     ylabel('Average Particle Velicity (m/s)')
@@ -143,7 +657,7 @@ for time = 0:1e-14:6e-13
     Jy = driftElecY/(2e-7*1e-7); 
     
     
-    figure(2)
+    figure(6)
     plot(time, Jx, 'r.', time, Jy, 'b.')
     title('Current Density Jx Jy')
     legend('Jx', 'Jy')
@@ -181,31 +695,110 @@ for time = 0:1e-14:6e-13
     velocityY(lowY) = -velocityY(lowY);
     
     
+    
+    %Check Upper Box Conditions
+    %Left Condition
+    UpperBoxLeftX0 = initialX < 0.8e-7;
+    UpperBoxLeftX1 = newX >= 0.8e-7; 
+    UpperBoxLeftX = UpperBoxLeftX0>0 & UpperBoxLeftX1>0;
+    
+    UpperBoxLeftY = newY >= 0.6e-7;
+    
+    bouncebackL = UpperBoxLeftX>0 & UpperBoxLeftY>0;
+    velocityX(bouncebackL) = -velocityX(bouncebackL);
+   
+    
+    %Center Condition
+    UpperBoxCenterX1 = newX >= 0.8e-7 ;
+    UpperBoxCenterX2 = newX <= 1.2e-7;
+    UpperBoxCenterX = UpperBoxCenterX1>0 & UpperBoxCenterX2>0;
+    
+    UpperBoxCenterY0 = initialY <= 0.6e-7;
+    UpperBoxCenterY1 = newY > 0.6e-7;
+    UpperBoxCenterY = UpperBoxCenterY0>0 & UpperBoxCenterY1>0;
+    
+    
+    bouncebackC = UpperBoxCenterX>0 & UpperBoxCenterY>0;
+    velocityY(bouncebackC) = -velocityY(bouncebackC);
+    
+    %Right Condition
+    UpperBoxRightX0 = initialX >= 1.2e-7;
+    UpperBoxRightX1 = newX < 1.2e-7; 
+    UpperBoxRightX = UpperBoxRightX0>0 & UpperBoxRightX1>0;
+    
+    UpperBoxRightY = newY >= 0.6e-7;
+    
+    bouncebackR = UpperBoxRightX>0 & UpperBoxRightY>0;
+    velocityX(bouncebackR) = -velocityX(bouncebackR);
+      
+    
+    
+    
+    
+    
+    %Check Lower Box Conditions
+    %Left Condition
+    LowerBoxLeftX0 = initialX < 0.8e-7;
+    LowerBoxLeftX1 = newX > 0.8e-7; 
+
+    LowerBoxLeftX = LowerBoxLeftX0>0 & LowerBoxLeftX1>0;
+    LowerBoxLeftY = newY < 0.4e-7;
+    
+    bouncebackL = LowerBoxLeftX>0 & LowerBoxLeftY>0;
+    velocityX(bouncebackL) = -velocityX(bouncebackL);
+   
+    
+    %Center Condition
+    LowerBoxCenterX1 = newX > 0.8e-7 ;
+    LowerBoxCenterX2 = newX < 1.2e-7;
+    LowerBoxCenterX = LowerBoxCenterX1>0 & LowerBoxCenterX2>0;
+    
+    LowerBoxCenterY0 = initialY > 0.4e-7;
+    LowerBoxCenterY1 = newY < 0.4e-7;
+    LowerBoxCenterY = LowerBoxCenterY0>0 & LowerBoxCenterY1>0;
+    
+    
+    bouncebackC = LowerBoxCenterX>0 & LowerBoxCenterY>0;
+    velocityY(bouncebackC) = -velocityY(bouncebackC);
+    
+    %Right Condition
+    LowerBoxRightX0 = initialX > 1.2e-7;
+    LowerBoxRightX1 = newX < 1.2e-7; 
+
+    LowerBoxRightX = LowerBoxRightX0>0 & LowerBoxRightX1>0;
+    LowerBoxRightY = newY < 0.4e-7;
+    
+    bouncebackR = LowerBoxRightX>0 & LowerBoxRightY>0;
+    velocityX(bouncebackR) = -velocityX(bouncebackR);
+    
+    
+    
+    
    
     
     xp = [initialX newX];
     yp = [initialY newY];
     c =  lines(NumElec);
 
-    figure(3)
+    figure(7)
+    hold on
     title('Confined Atoms');
-    P = plot(xp.', yp.');
+    plot(BLX,BLY,'k',BHX,BHY,'k')
+    P = plot(xp.', yp.');  
     set(P, {'color'}, num2cell(c,2));    
     hold on
+
 
     axis ([0 200e-9 0 100e-9])
     
     
-    figure(4)
-    title('Average Temperature (C)');
+    figure(8)
+    title('Average Temperature(K)');
     plot(time, T, 'r.')
     xlabel('Time')
     ylabel('Temperature')
     hold on  
   
-
-
-
 
     initialX = newX;
     initialY = newY;
@@ -254,7 +847,7 @@ y = linspace(0,1e-7,20);
 [X,Y] = meshgrid(x,y);
 [Xp,Yp] = meshgrid(newX,newY);
 
-figure(5)
+figure(9)
 surf(X,Y,ED);
 title('Electron Density')
 xlabel('X Position')
@@ -263,255 +856,13 @@ ylabel('Y Position')
 notTemp = isnan(Temp);
 Temp(notTemp) = 0;
 
-figure(7)
+figure(10)
 surf(X,Y,Temp);
 title('Temperature Map')
 xlabel('X Position')
 ylabel('Y Position')
 
 hold off
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-% 
-% % % Part 2
-% clear
-% clc
-% 
-% NumElec = 200
-% nx = 20;
-% ny = 40;
-% Vx = 2;
-% Vy = 0;
-% delx = 0.05e-7;
-% dely = 0.05e-7;
-% Acond = 1;
-% Bcond = 10E-2;
-% 
-% G = sparse(nx*ny,nx*ny);
-% Vv = zeros(nx*ny,1);
-% V = zeros(nx,ny);
-% B = zeros((nx*ny),1);
-% 
-% x = linspace(0,2e-7,40);
-% y = linspace(0,1e-7,20);
-% [X,Y] = meshgrid(x,y);
-% % [Xp,Yp] = meshgrid(newX,newY);
-%         
-% 
-% 
-% %Part 2 from assignment 2
-% 
-% cMap = zeros(nx, ny);
-% 
-% for j = 1:ny
-%     for i = 1:nx
-%         cMap(i,j) = Acond;
-%         if ((j<((2/3)*ny))&&((j>((1/3)*ny))&&(i<((1/3)*nx))))|| ((j<((2/3)*ny))&&((j>((1/3)*ny))&&(i>((2/3)*nx))))
-%             cMap(i,j) = Bcond;
-%         end
-%     end
-% end
-% figure(4)
-% surf(X,Y,cMap)    
-% title('Conduction Map')
-% xlabel('ny Value')
-% ylabel('nx Value')
-% 
-% %Initialize Left Boundary Conditions
-% for i = 1:nx*ny
-%     B(i,1) = 0;
-%     B(i,ny) = 0;
-% end
-%         
-% %Set diagonal
-% for j = 1:ny
-%     for i = 1:nx
-%         n = i+(j-1)*nx;
-%         %Set the Boundary Nodes
-%         if j == 1
-%             G(n,:) = 0;
-%             G(n,n) = 1; 
-% %             B(n,1) = 0;
-%             
-%         elseif j == ny
-%             G(n,:) = 0;
-%             G(n,n) = 1;
-%             B(n,1) = Vx;
-%             
-%         elseif i == 1
-%             %Mapping
-%             nxm = (i)+(j-2)*nx;
-%             nxp = (i)+(j)*nx;
-%             nyp = (i+1)+(j-1)*nx;
-%             G(n,:) = 0;
-%             G(n,n) = 1;
-%             B(n,1) = 0;
-%             
-%             rxm = ((cMap(i,j) + cMap(i,j-1))/2);
-%             rxp = ((cMap(i,j) + cMap(i,j+1))/2);            
-%             ryp = ((cMap(i,j) + cMap(i+1,j))/2);
-% 
-%             G(n,n) = -(rxp+rxm+ryp);
-%             G(n,nxm) = rxm;
-%             G(n,nyp) = ryp;
-%             G(n,nxp) = rxp;
-%             
-%         elseif i == nx
-%             %Mapping
-%             nym = (i-1)+(j-1)*nx;
-%             nxp = (i)+(j)*nx;
-%             nxm = (i)+(j-2)*nx;
-%             G(n,:) = 0;
-%             G(n,n) = 1;
-%             B(n,1) = 0;
-%             
-%             rxm = ((cMap(i,j) + cMap(i,j-1))/2);
-%             rxp = ((cMap(i,j) + cMap(i,j+1))/2);            
-%             rym = ((cMap(i,j) + cMap(i-1,j))/2);
-% 
-%             G(n,n) = -(rxm+rym+rxp);
-%             G(n,nym) = rym;
-%             G(n,nxm) = rxm;
-%             G(n,nxp) = rxp;            
-% 
-%         else
-%             %Mapping
-%             nym = (i-1)+(j-1)*nx;
-%             nyp = (i+1)+(j-1)*nx;
-%             nxm = (i)+(j-2)*nx;
-%             nxp = (i)+(j)*nx;
-% 
-%             rym = ((cMap(i,j) + cMap(i-1,j))/2);
-%             ryp = ((cMap(i,j) + cMap(i+1,j))/2);            
-%             rxm = ((cMap(i,j) + cMap(i,j-1))/2);        
-%             rxp = ((cMap(i,j) + cMap(i,j+1))/2);       
-%       
-%    
-%             G(n,n) = -(rxm+rxp+rym+ryp);
-%             G(n,nym) = rym;
-%             G(n,nyp) = ryp;
-%             G(n,nxm) = rxm;
-%             G(n,nxp) = rxp; 
-%             B(n,1) = 0;
-%             
-% 
-% 
-%         end
-%    
-%     end
-% end
-% 
-% Vv = G\B;
-% 
-% for j = 1:ny
-%     for i = 1:nx
-%         n = i+(j-1)*nx;
-%         V(i,j) = Vv(n,1);
-%     end
-% end
-% 
-% figure(5)
-% surf(X,Y,V)
-% title('V Plot')
-% xlabel('ny Value')
-% ylabel('nx Value')
-% 
-% 
-% 
-% %Gradient of V
-% for j = 1:ny
-%     for i = 1:nx
-%         if j == 1
-%             Ex(i,j) = (V(i,j+1)-V(i,j));
-%         elseif j == ny
-%             Ex(i,j) = (V(i,j)-V(i,j-1));
-%         else
-%             Ex(i,j) = (V(i,j+1)-V(i,j-1))*0.5;
-%         end
-%         if i == 1
-%             Ey(i,j) = (V(i+1,j)-V(i,j));
-%         elseif i == nx
-%             Ey(i,j) = (V(i,j)-V(i-1,j));
-%         else
-%             Ey(i,j) = (V(i+1,j)-V(i-1,j))*0.5;
-%         end
-%     end
-% end
-% 
-% Ex = -Ex;
-% Ey = -Ey;
-% % figure(6)
-% % surf(X,Y,Ex)
-% % title('Ex Field')
-% % xlabel('ny Value')
-% % ylabel('nx Value')
-% 
-% % figure(7)
-% % surf(X,Y,Ey)
-% % title('Ey Field')
-% % xlabel('ny Value')
-% % ylabel('nx Value')
-% 
-% E = sqrt(Ex.^2+Ey.^2);
-% figure(8)
-% surf(X,Y,E)
-% title('Total E Field')
-% xlabel('ny Value')
-% ylabel('nx Value')
-% 
-% eflowx = cMap.*Ex;
-% eflowy = cMap.*Ey;
-% 
-% % figure(9)
-% % surf(X,Y,eflowx)
-% % title('Eflow X')
-% % xlabel('ny Value')
-% % ylabel('nx Value')
-% % 
-% % figure(10)
-% % surf(X,Y,eflowy)
-% % title('Eflow Y')
-% % xlabel('ny Value')
-% % ylabel('nx Value')
-% 
-% 
-% eflow = sqrt(eflowx.^2 + eflowy.^2);
-% 
-% % figure(11)
-% % surf(X,Y,eflow)
-% % title('Eflow Total')
-% % xlabel('ny Value')
-% % ylabel('nx Value')
-% 
-% C0 = sum(eflowx(1,:));
-% Cnx = sum(eflowx(nx,:));
-% Curr = (C0+Cnx)*0.5;
-% 
-% figure(12)
-% quiver(X,Y,Ex,Ey)
-% axis ([0 200e-9 0 100e-9])
-% 
-% 
-% 
-% 
 % 
 % 
 % 
